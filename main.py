@@ -1,4 +1,4 @@
-import os, sys, random, json, logging
+import os, sys, json, logging
 from typing import List, Dict, Any
 import torch
 import torch.distributed as dist
@@ -7,6 +7,7 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer, AdamW, get_cosine
 from datasets import load_dataset
 import numpy as np
 from tqdm import tqdm
+import secrets
 
 BASE_MODEL_NAME = "gpt2-large"
 TOKENIZER_NAME = "gpt2-large"
@@ -25,7 +26,7 @@ SEED = 42
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s', handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger(__name__)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-random.seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
+secrets.SystemRandom().seed(SEED); np.random.seed(SEED); torch.manual_seed(SEED)
 if torch.cuda.is_available(): torch.cuda.manual_seed_all(SEED)
 
 def load_jsonl(file_path: str) -> List[Dict[str, Any]]:
@@ -177,7 +178,7 @@ def main():
             evaluation_entry = {
                 'instruction': entry['instruction'],
                 'correct_response': entry['response'],
-                'distractor_responses': random.sample(response_texts, 3) if len(response_texts) >= 3 else response_texts
+                'distractor_responses': secrets.SystemRandom().sample(response_texts, 3) if len(response_texts) >= 3 else response_texts
             }
             evaluation_data.append(evaluation_entry)
     logger.info("Evaluating Base Model...")
